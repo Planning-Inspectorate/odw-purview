@@ -35,9 +35,6 @@ steps:
       echo "##[command]terraform plan -var-file=./environments/${{ parameters.environment }}.tfvars -input=false -out=${{ parameters.planFileName }}"
       terraform plan \
         -var-file=./environments/${{ parameters.environment }}.tfvars \
-        -var "failover_deployment=${{ lower(parameters.failoverDeployment) }}" \
-        -var "odt_subscription_id=${{ lower(parameters.odtSubscriptionId) }}" \
-        -var "horizon_subscription_id=${{ lower(parameters.horizonSubscriptionId) }}" \
         -input=false \
         -out=${{ parameters.planFileName }}
     displayName: 'Terraform Plan'
