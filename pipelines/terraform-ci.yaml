@@ -1,0 +1,56 @@
+parameters:
+  - name: environment
+    displayName: Environment
+    type: string
+    default: Dev
+    values:
+    - Dev
+
+variables:
+- group: Terraform ${{ parameters.environment }}
+- name: environment
+  value: ${{ lower(parameters.environment) }}
+- name: poolName
+  value: ${{ format('pins-agent-pool-odw-{0}-uks', lower(parameters.environment)) }}
+
+resources:
+  repositories:
+    - repository: templates
+      type: github
+      endpoint: Planning-Inspectorate
+      name: Planning-Inspectorate/common-pipeline-templates
+      ref: refs/tags/release/3.21.2
+
+# Run when Pull Request raised to the main branch
+pr:
+- main
+
+stages:
+  - stage: Validate
+    jobs:
+    - job: Validate
+      pool: ${{ variables.poolName }}
+      steps:
+      # Checkout repo
+      - checkout: self
+        displayName: 'Checkout Repo'
+
+      - template: steps/terraform_tflint.yml@templates
+      - template: steps/run_checkov.yml@templates
+
+      # Login to Azure using Terraform service principal
+      #- template: steps/azure-login.yaml
+
+      # Run terraform init
+      - template: steps/terraform-init.yaml
+        parameters:
+          environment: ${{ variables.environment }}
+          workingDirectory: infrastructure
+
+      # Run Terraform format
+      - template: steps/terraform_format.yml@templates
+
+      # Run Terraform validate
+      - template: steps/terraform_validate.yml@templates
+        parameters:
+          workingDirectory: infrastructure
