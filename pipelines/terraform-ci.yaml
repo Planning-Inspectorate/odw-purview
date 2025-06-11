@@ -36,7 +36,12 @@ stages:
         displayName: 'Checkout Repo'
 
       - template: steps/terraform_tflint.yml@templates
-      - template: steps/run_checkov.yml@templates
+      - template: steps/install-checkov.yaml
+      # Run Checkov
+      - template: steps/checkov-validate.yaml
+        parameters:
+          framework: terraform
+          workingDirectory: infrastructure
 
       # Login to Azure using Terraform service principal
       #- template: steps/azure-login.yaml
