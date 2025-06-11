@@ -44,7 +44,7 @@ stages:
           workingDirectory: infrastructure
 
       # Login to Azure using Terraform service principal
-      #- template: steps/azure-login.yaml
+      - template: steps/azure-login.yaml
 
       # Run terraform init
       - template: steps/terraform-init.yaml
