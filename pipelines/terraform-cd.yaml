@@ -16,6 +16,8 @@ variables:
   value: tfplan
 - name: artifactName
   value: purview-terraform-plan
+- name: armServiceConnectionName
+  value: ${{ format('Azure DevOps Pipelines - ODW {0} - Infrastructure', upper(parameters.environment)) }}
 
 stages:
 - stage: Plan
