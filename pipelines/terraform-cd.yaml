@@ -95,11 +95,6 @@ stages:
           # Login to Azure using Terraform service principal
           - template: steps/azure-login.yaml
 
-          # Unlock resources
-          - template: steps/azure-resource-unlock.yaml
-            parameters:
-              armServiceConnectionName: ${{ variables.armServiceConnectionName }}
-
           # Run Terraform init
           - template: steps/terraform-init.yaml
             parameters:
@@ -112,11 +107,3 @@ stages:
               environment: ${{ variables.environment }}
               planFilePath: $(Pipeline.Workspace)/${{ variables.artifactName }}/${{ variables.planFileName }}
               workingDirectory: infrastructure
-
-          # Lock resources
-          - template: steps/azure-resource-lock.yaml
-            parameters:
-              armServiceConnectionName: ${{ variables.armServiceConnectionName }}
-              resourceIds:
-              - $(data_lake_account_id)
-              - $(data_lake_account_id_failover)
