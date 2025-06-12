@@ -2,9 +2,9 @@ parameters:
   - name: environment
     displayName: Environment
     type: string
-    default: Prod
+    default: Dev
     values:
-    - Prod
+    - Dev
 
 variables:
 - group: Terraform ${{ parameters.environment }}
