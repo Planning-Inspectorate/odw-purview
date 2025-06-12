@@ -1,6 +1,6 @@
 locals {
-  service_name = "odw"
-  location = "uk-south"
+  service_name = "odw" # Temporary for now
+  location     = "uksouth"
   tags = {
     CreatedBy   = "Terraform"
     Environment = var.environment
