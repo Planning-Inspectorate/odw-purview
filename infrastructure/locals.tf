@@ -1,5 +1,5 @@
 locals {
-  service_name = "odw"
+  service_name = "odw"  # Temporary for now
   location     = "uksouth"
   tags = {
     CreatedBy   = "Terraform"
