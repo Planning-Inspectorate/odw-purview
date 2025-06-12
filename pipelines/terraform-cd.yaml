@@ -1,0 +1,111 @@
+parameters:
+  - name: environment
+    displayName: Environment
+    type: string
+    default: Prod
+    values:
+    - Prod
+
+variables:
+- group: Terraform ${{ parameters.environment }}
+- name: environment
+  value: ${{ lower(parameters.environment) }}
+- name: poolName
+  value: ${{ format('pins-agent-pool-odw-{0}-uks', lower(parameters.environment)) }}
+- name: planFileName
+  value: tfplan
+- name: artifactName
+  value: purview-terraform-plan
+- name: armServiceConnectionName
+  value: ${{ format('Azure DevOps Pipelines - ODW {0} - Infrastructure', upper(parameters.environment)) }}
+
+pr: none
+
+stages:
+- stage: Plan
+  displayName: Terraform Plan ${{ parameters.environment }}
+  jobs:
+  - job: Plan
+    displayName: Terraform Plan
+    pool: ${{ variables.poolName }}
+    steps:
+    # Checkout repo
+    - checkout: self
+      displayName: 'Checkout'
+
+    # Login to Azure using Terraform service principal
+    - template: steps/azure-login.yaml
+
+    # Run terraform init
+    - template: steps/terraform-init.yaml
+      parameters:
+        environment: ${{ variables.environment }}
+        workingDirectory: infrastructure
+
+    # Run Terraform plan
+    - template: steps/terraform-plan.yaml
+      parameters:
+        environment: ${{ variables.environment }}
+        failoverDeployment: false
+        planFileName: ${{ variables.planFileName }}
+        workingDirectory: infrastructure
+
+    # Copy Terraform plan files to artifact directory
+    - task: CopyFiles@2
+      displayName: 'Create Artifact'
+      inputs:
+        sourceFolder: infrastructure
+        contents: |
+          .terraform/**
+          .terraform.lock.hcl
+          *.tftpl
+          ${{ variables.planFileName }}
+        targetFolder: $(Build.ArtifactStagingDirectory)
+
+    # Publish pipeline artifacts
+    - publish: $(Build.ArtifactStagingDirectory)
+      artifact: ${{ variables.artifactName }}
+      displayName: 'Publish Artifact'
+
+- stage: Apply
+  dependsOn: Plan
+  displayName: Terraform Apply ${{ parameters.environment }}
+  jobs:
+  - deployment: Apply
+    displayName: Terraform Apply
+    environment: ${{ parameters.environment }}
+    pool: ${{ variables.poolName }}
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          # Checkout repo
+          - checkout: self
+            displayName: 'Checkout'
+
+          # Download pipeline artifacts
+          - download: current
+            artifact: ${{ variables.artifactName }}
+            displayName: 'Download Artifact'
+
+          # Verify terraform plan file
+          - template: steps/verify-artifact.yaml
+            parameters:
+              artifactFileName: ${{ variables.planFileName }}
+              artifactFilePath: $(Pipeline.Workspace)/${{ variables.artifactName }}
+
+          # Login to Azure using Terraform service principal
+          - template: steps/azure-login.yaml
+
+          # Run Terraform init
+          - template: steps/terraform-init.yaml
+            parameters:
+              environment: ${{ variables.environment }}
+              workingDirectory: infrastructure
+
+          # Run Terraform apply
+          - template: steps/terraform-apply.yaml
+            parameters:
+              environment: ${{ variables.environment }}
+              planFilePath: $(Pipeline.Workspace)/${{ variables.artifactName }}/${{ variables.planFileName }}
+              workingDirectory: infrastructure
