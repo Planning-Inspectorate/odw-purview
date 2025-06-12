@@ -19,6 +19,8 @@ variables:
 - name: armServiceConnectionName
   value: ${{ format('Azure DevOps Pipelines - ODW {0} - Infrastructure', upper(parameters.environment)) }}
 
+pr: none
+
 stages:
 - stage: Plan
   displayName: Terraform Plan ${{ parameters.environment }}
