@@ -80,8 +80,8 @@ class Util:
     @classmethod
     def get_purview_managed_event_hub_namespace_names(cls) -> List[str]:
         return [
-            storage_account["name"]
-            for storage_account in cls.get_purview_managed_event_hubs()
+            event_hub["name"]
+            for event_hub in cls.get_purview_managed_event_hub_namespaces()
         ]
     
     @classmethod
