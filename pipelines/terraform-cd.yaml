@@ -109,3 +109,8 @@ stages:
               environment: ${{ variables.environment }}
               planFilePath: $(Pipeline.Workspace)/${{ variables.artifactName }}/${{ variables.planFileName }}
               workingDirectory: infrastructure
+          
+          # Approve all pending managed private endpoints
+          - template: ${{variables['System.DefaultWorkingDirectory']}}/pipelines/steps/approve-private-endpoints.yaml
+            parameters:
+              pythonVersion: 3
