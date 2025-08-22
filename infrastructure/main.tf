@@ -43,7 +43,7 @@ resource "azurerm_storage_account" "dedicated_purview_storage" {
   https_traffic_only_enabled       = true
   is_hns_enabled                   = true
   min_tls_version                  = "TLS1_2"
-  public_network_access_enabled    = false
+  public_network_access_enabled    = true
   cross_tenant_replication_enabled = true
 
   blob_properties {
