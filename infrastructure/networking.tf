@@ -54,7 +54,7 @@ resource "azurerm_virtual_network_peering" "tooling_to_purview" {
   name                      = "pins-peer-tooling-to-pview-${var.environment}"
   resource_group_name       = local.tooling_config.network_rg
   virtual_network_name      = local.tooling_config.network_name
-  remote_virtual_network_id = azurerm_virtual_network.purview_resources_vnet.name
+  remote_virtual_network_id = azurerm_virtual_network.purview_resources_vnet.id
 
   provider = azurerm.tooling
 }
