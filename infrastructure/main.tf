@@ -32,6 +32,7 @@ resource "azurerm_storage_account" "dedicated_purview_storage" {
   #checkov:skip=CKV2_AZURE_8: Firewall is enabled using azurerm_storage_account_network_rules
   #checkov:skip=CKV2_AZURE_18: Microsoft managed keys are acceptable
   #checkov:skip=CKV2_AZURE_33: Private Endpoint is not enabled as networking is controlled by Firewall
+  #checkov:skip=CKV_AZURE_33: Queue service is not used by this storage account
   name                             = "pinsstpview"
   resource_group_name              = azurerm_resource_group.data_management.name
   location                         = local.location
