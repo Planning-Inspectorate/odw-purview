@@ -13,7 +13,7 @@ resource "azurerm_subnet" "purview_resources_subnet" {
   virtual_network_name = azurerm_virtual_network.purview_resources_vnet.name
   address_prefixes     = [local.vnet_subnet_ip_range]
 
-  service_endpoints    = ["Microsoft.Storage"]
+  service_endpoints = ["Microsoft.Storage"]
 }
 
 
