@@ -44,10 +44,21 @@ resource "azurerm_storage_account" "dedicated_purview_storage" {
   min_tls_version                  = "TLS1_2"
   public_network_access_enabled    = true
   cross_tenant_replication_enabled = true
-  tags                             = local.tags
+
+  blob_properties {
+    delete_retention_policy {
+      days = local.data_lake_retention_days
+    }
+
+    container_delete_retention_policy {
+      days = local.data_lake_retention_days
+    }
+  }
+
+  tags = local.tags
 }
 
 resource "azurerm_storage_data_lake_gen2_filesystem" "self_serve_analytics_data_lake" {
-  name               = "selfServeAnalytics"
+  name               = "self-serve-analytics"
   storage_account_id = azurerm_storage_account.dedicated_purview_storage.id
 }
