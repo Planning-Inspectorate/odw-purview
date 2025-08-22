@@ -16,6 +16,24 @@ resource "azurerm_subnet" "purview_resources_subnet" {
   service_endpoints = ["Microsoft.Storage"]
 }
 
+resource "azurerm_network_security_group" "nsg" {
+  name                = "pins-nsg-apim-pview-${var.environment}"
+  location            = local.location
+  resource_group_name = azurerm_resource_group.data_management.name
+
+  tags = local.tags
+}
+
+resource "azurerm_subnet_network_security_group_association" "nsg" {
+  network_security_group_id = azurerm_network_security_group.nsg.id
+  subnet_id                 = azurerm_subnet.purview_resources_subnet.id
+
+  depends_on = [
+    azurerm_network_security_group.nsg
+  ]
+}
+
+
 
 # Tooling vnet resources
 data "azurerm_virtual_network" "tooling" {
