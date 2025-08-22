@@ -41,12 +41,21 @@ resource "azurerm_virtual_network_peering" "tooling_to_purview" {
   provider = azurerm.tooling
 }
 
-# DNS zone
+# DNS zones
 resource "azurerm_private_dns_zone" "data_lake_dns_zone" {
   name                = "privatelink.dfs.core.windows.net"
   resource_group_name = azurerm_resource_group.data_management.name
 
   tags = local.tags
+}
+
+data "azurerm_private_dns_zone" "tooling_storage" {
+  for_each = toset(local.storage_zones)
+
+  name                = "privatelink.${each.key}.core.windows.net"
+  resource_group_name = var.tooling_config.network_rg
+
+  provider = azurerm.tooling
 }
 
 resource "azurerm_private_endpoint" "data_lake" {
@@ -71,9 +80,6 @@ resource "azurerm_private_endpoint" "data_lake" {
 }
 
 # private endpoints in tooling
-locals {
-  storage_zones = ["blob", "dfs", "file", "queue", "table", "web"]
-}
 
 resource "azurerm_private_endpoint" "tooling_data_lake" {
   for_each = toset(local.storage_zones)
@@ -85,7 +91,7 @@ resource "azurerm_private_endpoint" "tooling_data_lake" {
 
   private_dns_zone_group {
     name                 = "storagePrivateDnsZone${each.key}"
-    private_dns_zone_ids = [local.tooling_config.storage_private_dns_zone_id[each.key]]
+    private_dns_zone_ids = [data.azurerm_private_dns_zone.tooling_storage[each.key].id]
   }
 
   private_service_connection {

@@ -9,6 +9,7 @@ locals {
     network_rg      = "pins-rg-shared-tooling-uks"
     subscription_id = "edb1ff78-90da-4901-a497-7e79f966f8e2"
   }
+  storage_zones = ["blob", "dfs", "file", "queue", "table", "web"]
   tags = {
     CreatedBy   = "Terraform"
     Environment = var.environment
