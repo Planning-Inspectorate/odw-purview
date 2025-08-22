@@ -28,7 +28,7 @@ data "azurerm_virtual_network" "tooling" {
 resource "azurerm_virtual_network_peering" "purview_to_tooling" {
   name                      = "pins-peer-pview-to-tooling-${var.environment}"
   resource_group_name       = azurerm_resource_group.data_management.name
-  virtual_network_name      = module.synapse_network.vnet_name
+  virtual_network_name      = azurerm_virtual_network.purview_resources_vnet.name
   remote_virtual_network_id = data.azurerm_virtual_network.tooling.id
 }
 
@@ -36,7 +36,7 @@ resource "azurerm_virtual_network_peering" "tooling_to_purview" {
   name                      = "pins-peer-tooling-to-pview-${var.environment}"
   resource_group_name       = local.tooling_config.network_rg
   virtual_network_name      = local.tooling_config.network_name
-  remote_virtual_network_id = module.synapse_network.vnet_id
+  remote_virtual_network_id = azurerm_virtual_network.purview_resources_vnet.name
 
   provider = azurerm.tooling
 }
@@ -53,7 +53,7 @@ data "azurerm_private_dns_zone" "tooling_storage" {
   for_each = toset(local.storage_zones)
 
   name                = "privatelink.${each.key}.core.windows.net"
-  resource_group_name = var.tooling_config.network_rg
+  resource_group_name = local.tooling_config.network_rg
 
   provider = azurerm.tooling
 }
