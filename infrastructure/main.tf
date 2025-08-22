@@ -32,7 +32,7 @@ resource "azurerm_storage_account" "dedicated_purview_storage" {
   min_tls_version                  = "TLS1_2"
   public_network_access_enabled    = true
   cross_tenant_replication_enabled = true
-  tags = local.tags
+  tags                             = local.tags
 }
 
 resource "azurerm_storage_data_lake_gen2_filesystem" "self_serve_analytics_data_lake" {
