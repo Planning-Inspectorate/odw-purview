@@ -10,11 +10,12 @@ locals {
     subscription_id = "edb1ff78-90da-4901-a497-7e79f966f8e2"
   }
   storage_zones = ["blob", "dfs", "file", "queue", "table", "web"]
-  dedicated_purview_storage_role_assignments = {
-    "Storage Blob Data Contributor" = [
-      "0cad1989-27de-4242-a06b-7cad373497e7" # Azure DevOps Pipelines - ODW Prod - Infrastructure"
-    ]
-  }
+  dedicated_purview_storage_role_assignments = [
+    {
+      role_definition_name = "Storage Blob Data Contributor"
+      principal_id         = "0cad1989-27de-4242-a06b-7cad373497e7" # Azure DevOps Pipelines - ODW Prod - Infrastructure"
+    }
+  ]
   tags = {
     CreatedBy   = "Terraform"
     Environment = var.environment
