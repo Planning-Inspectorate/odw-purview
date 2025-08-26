@@ -12,7 +12,7 @@ locals {
   storage_zones = ["blob", "dfs", "file", "queue", "table", "web"]
   dedicated_purview_storage_role_assignments = {
     "Storage Blob Data Contributor" = [
-      "0cad1989-27de-4242-a06b-7cad373497e7"  # Azure DevOps Pipelines - ODW Dev - Infrastructure"
+      "0cad1989-27de-4242-a06b-7cad373497e7" # Azure DevOps Pipelines - ODW Prod - Infrastructure"
     ]
   }
   tags = {
