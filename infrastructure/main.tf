@@ -59,7 +59,7 @@ resource "azurerm_storage_account" "dedicated_purview_storage" {
   tags = local.tags
 }
 
-resource "azurerm_storage_data_lake_gen2_filesystem" "self_serve_analytics_data_lake" {
-  name               = "self-serve-analytics"
-  storage_account_id = azurerm_storage_account.dedicated_purview_storage.id
-}
+#resource "azurerm_storage_data_lake_gen2_filesystem" "self_serve_analytics_data_lake" {
+#  name               = "self-serve-analytics"
+#  storage_account_id = azurerm_storage_account.dedicated_purview_storage.id
+#}
