@@ -75,6 +75,13 @@ resource "azurerm_private_dns_zone" "data_lake_dns_zone" {
   tags = local.tags
 }
 
+resource "azurerm_private_dns_zone" "purview_dns_zone" {
+  name                = "privatelink.purview.azure.com"
+  resource_group_name = azurerm_resource_group.data_management.name
+
+  tags = local.tags
+}
+
 data "azurerm_private_dns_zone" "tooling_storage" {
   for_each = toset(local.storage_zones)
 
@@ -82,6 +89,30 @@ data "azurerm_private_dns_zone" "tooling_storage" {
   resource_group_name = local.tooling_config.network_rg
 
   provider = azurerm.tooling
+}
+
+resource "azurerm_private_endpoint" "purview_platform_private_endpoint" {
+  name                = "pins-pe-platform${azurerm_purview_account.management.name}"
+  resource_group_name = azurerm_resource_group.data_management.name
+  location            = local.location
+  subnet_id           = azurerm_subnet.purview_resources_subnet.id
+
+  private_dns_zone_group {
+    name = "purviewDnsZone"
+    private_dns_zone_ids = [
+      azurerm_private_dns_zone.data_lake_dns_zone.id,
+      azurerm_private_dns_zone.purview_dns_zone.id
+    ]
+  }
+
+  private_service_connection {
+    name                           = "purviewDfs"
+    is_manual_connection           = false
+    private_connection_resource_id = azurerm_purview_account.management.id
+    subresource_names              = ["Platform"]
+  }
+
+  tags = local.tags
 }
 
 resource "azurerm_private_endpoint" "data_lake" {
