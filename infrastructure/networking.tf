@@ -118,7 +118,7 @@ resource "azurerm_private_endpoint" "purview_platform_private_endpoint" {
     name                           = "purviewDfs"
     is_manual_connection           = false
     private_connection_resource_id = azurerm_purview_account.management.id
-    subresource_names              = ["Platform"]
+    subresource_names              = ["platform"]
   }
 
   tags = local.tags
