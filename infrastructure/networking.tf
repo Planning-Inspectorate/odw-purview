@@ -78,7 +78,8 @@ resource "azurerm_virtual_network_peering" "tooling_to_purview" {
 
 # DNS zones
 resource "azurerm_private_dns_zone" "data_lake_dns_zone" {
-  name                = "privatelink.dfs.core.windows.net"
+  for_each            = toset(["dfs", "blob", "queue"])
+  name                = "privatelink.${each.key}.core.windows.net"
   resource_group_name = azurerm_resource_group.data_management.name
 
   tags = local.tags
