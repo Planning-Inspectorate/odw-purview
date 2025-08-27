@@ -198,7 +198,7 @@ resource "azurerm_private_endpoint" "purview_ingestion_blob" {
 
   private_dns_zone_group {
     name                 = "purviewBlobPrivateDnsZone"
-    private_dns_zone_ids = [azurerm_private_dns_zone.tooling_storage["blob"].id]
+    private_dns_zone_ids = [azurerm_private_dns_zone.data_lake_dns_zone["blob"].id]
   }
   private_service_connection {
     name                           = "purviewBlobServiceConnection"
@@ -216,7 +216,7 @@ resource "azurerm_private_endpoint" "purview_ingestion_queue" {
 
   private_dns_zone_group {
     name                 = "purviewQueuePrivateDnsZone"
-    private_dns_zone_ids = [azurerm_private_dns_zone.tooling_storage["queue"].id]
+    private_dns_zone_ids = [azurerm_private_dns_zone.data_lake_dns_zone["queue"].id]
   }
   private_service_connection {
     name                           = "purviewQueueServiceConnection"
