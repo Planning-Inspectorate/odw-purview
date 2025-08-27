@@ -34,9 +34,10 @@ resource "azurerm_subnet_network_security_group_association" "nsg" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "purview_resources_vnet_link" {
+  for_each              = toset([for dns_zone in azurerm_private_dns_zone.data_lake_dns_zone : dns_zone.name])
   name                  = "dfs-vnet-pview"
   resource_group_name   = azurerm_resource_group.data_management.name
-  private_dns_zone_name = azurerm_private_dns_zone.data_lake_dns_zone.name
+  private_dns_zone_name = each.key
   virtual_network_id    = azurerm_virtual_network.purview_resources_vnet.id
 
   tags = local.tags
