@@ -46,7 +46,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "purview_resources_vnet
 resource "azurerm_private_dns_zone_virtual_network_link" "purview_vnet_link" {
   name                  = "dfs-vnet-pview-platform"
   resource_group_name   = azurerm_resource_group.data_management.name
-  private_dns_zone_name = azurerm_private_dns_zone.purview_dns_zone.name
+  private_dns_zone_name = azurerm_private_dns_zone.purview_platform_dns_zone.name
   virtual_network_id    = azurerm_virtual_network.purview_resources_vnet.id
 
   tags = local.tags
@@ -96,7 +96,16 @@ resource "azurerm_private_dns_zone" "data_lake_dns_zone" {
 }
 
 resource "azurerm_private_dns_zone" "purview_dns_zone" {
+  # Purview account
   name                = "privatelink.purview.azure.com"
+  resource_group_name = azurerm_resource_group.data_management.name
+
+  tags = local.tags
+}
+
+resource "azurerm_private_dns_zone" "purview_platform_dns_zone" {
+  # Purview platform
+  name                = "privatelink.purview-service.microsoft.com"
   resource_group_name = azurerm_resource_group.data_management.name
 
   tags = local.tags
@@ -128,7 +137,7 @@ resource "azurerm_private_endpoint" "purview_platform_private_endpoint" {
     name = "purviewDnsZone"
     private_dns_zone_ids = concat(
       [for dns_zone in azurerm_private_dns_zone.data_lake_dns_zone : dns_zone.id],
-      [azurerm_private_dns_zone.purview_dns_zone.id]
+      [azurerm_private_dns_zone.purview_dns_zone.id, azurerm_private_dns_zone.purview_platform_dns_zone.id]
     )
   }
 
