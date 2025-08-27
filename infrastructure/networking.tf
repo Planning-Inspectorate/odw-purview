@@ -52,6 +52,15 @@ resource "azurerm_private_dns_zone_virtual_network_link" "purview_vnet_link" {
   tags = local.tags
 }
 
+resource "azurerm_private_dns_zone_virtual_network_link" "purview_account_vnet_link" {
+  name                  = "dfs-vnet-pview-account"
+  resource_group_name   = azurerm_resource_group.data_management.name
+  private_dns_zone_name = azurerm_private_dns_zone.purview_dns_zone.name
+  virtual_network_id    = azurerm_virtual_network.purview_resources_vnet.id
+
+  tags = local.tags
+}
+
 resource "azurerm_private_dns_zone_virtual_network_link" "purview_servicebus_vnet_link" {
   name                  = "dfs-vnet-pview-servicebus"
   resource_group_name   = azurerm_resource_group.data_management.name
