@@ -171,3 +171,23 @@ resource "azurerm_private_endpoint" "tooling_data_lake" {
 
   tags = local.tags
 }
+
+
+# Purview managed private endpoints
+resource "azurerm_private_endpoint" "purview_ingestion_blob" {
+  name                = "pe-pins-pview-${var.environment}-ingestion-blob"
+  location            = local.location
+  resource_group_name = azurerm_resource_group.data_management.name
+  subnet_id           = azurerm_subnet.purview_resources_subnet.id
+
+  private_dns_zone_group {
+    name                 = "purviewBlobPrivateDnsZone"
+    private_dns_zone_ids = [data.azurerm_private_dns_zone.tooling_storage["blob"].id]
+  }
+  private_service_connection {
+    name                           = "purviewBlobServiceConnection"
+    private_connection_resource_id = azurerm_purview_account.management.managed_resources[0].storage_account_id
+    is_manual_connection           = false
+    subresource_names              = ["blob"]
+  }
+}
