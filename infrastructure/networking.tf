@@ -52,6 +52,15 @@ resource "azurerm_private_dns_zone_virtual_network_link" "purview_vnet_link" {
   tags = local.tags
 }
 
+resource "azurerm_private_dns_zone_virtual_network_link" "purview_servicebus_vnet_link" {
+  name                  = "dfs-vnet-pview-servicebus"
+  resource_group_name   = azurerm_resource_group.data_management.name
+  private_dns_zone_name = azurerm_private_dns_zone.service_bus_dns_zone.name
+  virtual_network_id    = azurerm_virtual_network.purview_resources_vnet.id
+
+  tags = local.tags
+}
+
 
 # Tooling vnet resources
 data "azurerm_virtual_network" "tooling" {
@@ -88,6 +97,13 @@ resource "azurerm_private_dns_zone" "data_lake_dns_zone" {
 
 resource "azurerm_private_dns_zone" "purview_dns_zone" {
   name                = "privatelink.purview.azure.com"
+  resource_group_name = azurerm_resource_group.data_management.name
+
+  tags = local.tags
+}
+
+resource "azurerm_private_dns_zone" "service_bus_dns_zone" {
+  name                = "privatelink.servicebus.windows.net"
   resource_group_name = azurerm_resource_group.data_management.name
 
   tags = local.tags
@@ -182,12 +198,48 @@ resource "azurerm_private_endpoint" "purview_ingestion_blob" {
 
   private_dns_zone_group {
     name                 = "purviewBlobPrivateDnsZone"
-    private_dns_zone_ids = [data.azurerm_private_dns_zone.tooling_storage["blob"].id]
+    private_dns_zone_ids = [azurerm_private_dns_zone.tooling_storage["blob"].id]
   }
   private_service_connection {
     name                           = "purviewBlobServiceConnection"
     private_connection_resource_id = azurerm_purview_account.management.managed_resources[0].storage_account_id
     is_manual_connection           = false
     subresource_names              = ["blob"]
+  }
+}
+
+resource "azurerm_private_endpoint" "purview_ingestion_queue" {
+  name                = "pe-pins-pview-${var.environment}-ingestion-queue"
+  location            = local.location
+  resource_group_name = azurerm_resource_group.data_management.name
+  subnet_id           = azurerm_subnet.purview_resources_subnet.id
+
+  private_dns_zone_group {
+    name                 = "purviewQueuePrivateDnsZone"
+    private_dns_zone_ids = [azurerm_private_dns_zone.tooling_storage["queue"].id]
+  }
+  private_service_connection {
+    name                           = "purviewQueueServiceConnection"
+    private_connection_resource_id = azurerm_purview_account.management.managed_resources[0].storage_account_id
+    is_manual_connection           = false
+    subresource_names              = ["queue"]
+  }
+}
+
+resource "azurerm_private_endpoint" "purview_ingestion_namespace" {
+  name                = "pe-pins-pview-${var.environment}-ingestion-namespace"
+  location            = local.location
+  resource_group_name = azurerm_resource_group.data_management.name
+  subnet_id           = azurerm_subnet.purview_resources_subnet.id
+
+  private_dns_zone_group {
+    name                 = "purviewNamespacePrivateDnsZone"
+    private_dns_zone_ids = [azurerm_private_dns_zone.service_bus_dns_zone.id]
+  }
+  private_service_connection {
+    name                           = "purviewNamespaceServiceConnection"
+    private_connection_resource_id = azurerm_purview_account.management.managed_resources[0].event_hub_namespace_id
+    is_manual_connection           = false
+    subresource_names              = ["namespace"]
   }
 }
