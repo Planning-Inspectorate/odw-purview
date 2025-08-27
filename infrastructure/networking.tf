@@ -109,10 +109,10 @@ resource "azurerm_private_endpoint" "purview_platform_private_endpoint" {
 
   private_dns_zone_group {
     name = "purviewDnsZone"
-    private_dns_zone_ids = [
-      azurerm_private_dns_zone.data_lake_dns_zone.id,
-      azurerm_private_dns_zone.purview_dns_zone.id
-    ]
+    private_dns_zone_ids = concat(
+      [for dns_zone in azurerm_private_dns_zone.data_lake_dns_zone : dns_zone.id],
+      [azurerm_private_dns_zone.purview_dns_zone.id]
+    )
   }
 
   private_service_connection {
@@ -133,7 +133,7 @@ resource "azurerm_private_endpoint" "data_lake" {
 
   private_dns_zone_group {
     name                 = "dataLakeDnsZone"
-    private_dns_zone_ids = [azurerm_private_dns_zone.data_lake_dns_zone.id]
+    private_dns_zone_ids = [for dns_zone in azurerm_private_dns_zone.data_lake_dns_zone : dns_zone.id]
   }
 
   private_service_connection {
