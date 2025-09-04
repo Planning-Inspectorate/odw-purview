@@ -57,8 +57,8 @@ resource "azurerm_storage_account" "dedicated_purview_storage" {
   }
 
   network_rules {
-    default_action             = "Allow"
-    bypass                     = ["AzureServices"]
+    default_action = "Allow"
+    bypass         = ["AzureServices"]
   }
 
   tags = local.tags
