@@ -24,9 +24,15 @@ resource "azurerm_role_assignment" "purview_storage_data_owners" {
   principal_id         = data.azuread_group.pins_purview_admins.object_id
 }
 
-resource "azurerm_role_assignment" "ado_sp_purview_storage" {
-  for_each             = toset(local.ado_agent_sp_ids)
+resource "azurerm_role_assignment" "purview_storage_contributors" {
   scope                = azurerm_storage_account.dedicated_purview_storage.id
-  role_definition_name = "Role Based Access Control Administrator"
-  principal_id         = each.key
+  role_definition_name = "Contributor"
+  principal_id         = data.azuread_group.pins_purview_admins.object_id
 }
+
+#resource "azurerm_role_assignment" "ado_sp_purview_storage" {
+#  for_each             = toset(local.ado_agent_sp_ids)
+#  scope                = azurerm_storage_account.dedicated_purview_storage.id
+#  role_definition_name = "Role Based Access Control Administrator"
+#  principal_id         = each.key
+#}
