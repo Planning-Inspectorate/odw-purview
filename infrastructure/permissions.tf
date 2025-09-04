@@ -23,12 +23,3 @@ resource "azurerm_role_assignment" "purview_storage_data_owners" {
   role_definition_name = "Storage Blob Data Owner"
   principal_id         = data.azuread_group.pins_purview_admins.object_id
 }
-
-
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_role_assignment" "terraform" {
-  scope                = azurerm_storage_account.dedicated_purview_storage.id
-  role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = data.azurerm_client_config.current.object_id
-}
