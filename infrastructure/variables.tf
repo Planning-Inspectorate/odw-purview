@@ -6,5 +6,5 @@ variable "environment" {
 variable "ado_agent_sp_ids" {
   description = "The ids of the Service Principals that are used for ADO pipelines"
   type        = string
-  default     = []
+  default     = ""
 }

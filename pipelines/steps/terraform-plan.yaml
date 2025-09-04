@@ -35,6 +35,7 @@ steps:
       echo "##[command]terraform plan -var-file=./environments/${{ parameters.environment }}.tfvars -input=false -out=${{ parameters.planFileName }}"
       terraform plan \
         -var-file=./environments/${{ parameters.environment }}.tfvars \
+        -var "ado_agent_sp_ids=$(ADO_AGENT_SP_IDS)" \
         -input=false \
         -out=${{ parameters.planFileName }}
     displayName: 'Terraform Plan'
