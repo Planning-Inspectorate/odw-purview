@@ -22,7 +22,7 @@ provider "azurerm" {
 }
 
 provider "azurerm" {
-  subscription_id                 = var.tooling_config.subscription_id
+  subscription_id                 = local.tooling_config.subscription_id
   alias                           = "tooling"
   resource_provider_registrations = "none"
 
