@@ -1,3 +1,6 @@
+# Networking for Purview's resources. Note this is currently commented out because Purview cannot use a storage account
+# in a VNET for the unified catalog. Once Purview supports this, the below networking can be uncommented/reviewed
+
 # resource "azurerm_virtual_network" "purview_resources_vnet" {
 #   name                = "vnet-pview"
 #   location            = local.location
