@@ -16,7 +16,6 @@ locals {
       principal_id         = "0cad1989-27de-4242-a06b-7cad373497e7" # Azure DevOps Pipelines - ODW Prod - Infrastructure"
     }
   ]
-  ado_agent_sp_ids = split(",", var.ado_agent_sp_ids)
   tags = {
     CreatedBy   = "Terraform"
     Environment = var.environment
