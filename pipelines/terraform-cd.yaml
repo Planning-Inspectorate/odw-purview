@@ -18,6 +18,8 @@ variables:
   value: purview-terraform-plan
 - name: armServiceConnectionName
   value: ${{ format('Azure DevOps Pipelines - ODW {0} - Infrastructure', upper(parameters.environment)) }}
+- name: TF_VAR_system_asset_owner
+  value: $(system_asset_owner)
 
 pr: none
 

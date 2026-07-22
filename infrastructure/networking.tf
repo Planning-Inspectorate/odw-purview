@@ -73,31 +73,6 @@
 #   tags = local.tags
 # }
 
-
-# # Tooling vnet resources
-# data "azurerm_virtual_network" "tooling" {
-#   name                = local.tooling_config.network_name
-#   resource_group_name = local.tooling_config.network_rg
-
-#   provider = azurerm.tooling
-# }
-
-# resource "azurerm_virtual_network_peering" "purview_to_tooling" {
-#   name                      = "pins-peer-pview-to-tooling-${var.environment}"
-#   resource_group_name       = azurerm_resource_group.data_management.name
-#   virtual_network_name      = azurerm_virtual_network.purview_resources_vnet.name
-#   remote_virtual_network_id = data.azurerm_virtual_network.tooling.id
-# }
-
-# resource "azurerm_virtual_network_peering" "tooling_to_purview" {
-#   name                      = "pins-peer-tooling-to-pview-${var.environment}"
-#   resource_group_name       = local.tooling_config.network_rg
-#   virtual_network_name      = local.tooling_config.network_name
-#   remote_virtual_network_id = azurerm_virtual_network.purview_resources_vnet.id
-
-#   provider = azurerm.tooling
-# }
-
 # # DNS zones
 # resource "azurerm_private_dns_zone" "data_lake_dns_zone" {
 #   for_each            = toset(["dfs", "blob", "queue"])
@@ -128,15 +103,6 @@
 #   resource_group_name = azurerm_resource_group.data_management.name
 
 #   tags = local.tags
-# }
-
-# data "azurerm_private_dns_zone" "tooling_storage" {
-#   for_each = toset(local.storage_zones)
-
-#   name                = "privatelink.${each.key}.core.windows.net"
-#   resource_group_name = local.tooling_config.network_rg
-
-#   provider = azurerm.tooling
 # }
 
 # resource "azurerm_private_endpoint" "purview_platform_private_endpoint" {
@@ -183,21 +149,6 @@
 
 #   tags = local.tags
 # }
-
-# # private endpoints in tooling
-
-# resource "azurerm_private_endpoint" "tooling_data_lake" {
-#   for_each = toset(local.storage_zones)
-
-#   name                = "pins-pe-pview-${each.key}-tooling-pview-${var.environment}-uks"
-#   resource_group_name = azurerm_resource_group.data_management.name
-#   location            = local.location
-#   subnet_id           = azurerm_subnet.purview_resources_subnet.id
-
-#   private_dns_zone_group {
-#     name                 = "storagePrivateDnsZone${each.key}"
-#     private_dns_zone_ids = [data.azurerm_private_dns_zone.tooling_storage[each.key].id]
-#   }
 
 #   private_service_connection {
 #     name                           = "storagePrivateServiceConnection${each.key}"
