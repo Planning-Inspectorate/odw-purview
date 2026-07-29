@@ -35,6 +35,7 @@ REQUEST_HEADERS = {
     "Content-Type": "application/json",
 }
 PURVIEW_NAME = os.environ.get("PURVIEW_NAME")
+PURVIEW_ENTITY_CACHE = {}
 
 
 def get_entities_by_guids(guids: list[str]):
@@ -52,8 +53,12 @@ def get_entities_by_guids(guids: list[str]):
             result = resp.json()["entities"]
         except json.JSONDecodeError:
             print(resp)
+            print(resp.text)
             raise
         all_results.extend(result)
+    # Cache the entities in a lookup dictionary
+    for entity in all_results:
+        PURVIEW_ENTITY_CACHE[entity["guid"]] = entity
     return all_results
 
 
@@ -237,9 +242,15 @@ def bulk_assign_classifications(
     """
 
     def generate_request_json(entity_guid, entity_classifications: list[str]):
+        entity_json = PURVIEW_ENTITY_CACHE[entity_guid]
+        existing_classifications = {
+            x["typeName"] for x in entity_json.get("classifications", [])
+        }
+        # The REST API
         return [
             {"typeName": classification_name, "entityGuid": entity_guid}
             for classification_name in entity_classifications
+            if classification_name not in existing_classifications
         ]
 
     request_bodies = {
@@ -255,6 +266,7 @@ def bulk_assign_classifications(
             url = f"https://{PURVIEW_NAME}.purview.azure.com/datamap/api/atlas/v2/entity/guid/{guid}/classifications"
             resp = requests.post(url, json=body, headers=REQUEST_HEADERS)
             print(f"    {resp}")
+            print(resp.text)
 
 
 def sync_purview_column_classifications(
