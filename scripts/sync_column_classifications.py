@@ -17,13 +17,13 @@ This script gathers the columns of the "duplicate" Purview entities and synchron
 the "duplicates" are the same
 
 # Example usage
-## Running without applying (i.e. this just prints the changes that will be made)
+## Running without applying (i.e. this just prints the changes that will be made. It is recommended to do this first before applying)
 python3 scripts/sync_column_classifications.py -en "TABLE_NAME_HERE" -cn "CONTAINER_NAME_HERE"
 
-### Running and applying (i.e. this will modify the entries in Purview)
+## Running and applying (i.e. this will modify the entries in Purview)
 python3 scripts/sync_column_classifications.py -en "TABLE_NAME_HERE" -cn "CONTAINER_NAME_HERE" -a
 
-### Running against different entity types
+## Running against different entity types
 Note by default this runs against ADLSG2 and Azure Blob entities - if you want to run against others (such as MSSQL, you will need to specify them here)
 python3 scripts/sync_column_classifications.py -en "TABLE_NAME_HERE" -cn "CONTAINER_NAME_HERE" --tf "Some Entity Type, Another Entity Type"
 
