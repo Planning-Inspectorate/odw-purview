@@ -9,6 +9,25 @@ from dotenv import load_dotenv
 
 load_dotenv(verbose=True, override=True)
 
+"""
+ODW raw data can come in many different formats for the same entity, which results in "duplicate" entities in Purview which represent each format.
+The raw data itself will have roughly the same schema between the Purview entities, and will also contain the ODW entity name within their `displayText`
+
+This script gathers the columns of the "duplicate" Purview entities and synchronises their classification tags, so that the classifications across all of
+the "duplicates" are the same
+
+# Example usage
+## Running without applying (i.e. this just prints the changes that will be made)
+python3 scripts/sync_column_classifications.py -en "TABLE_NAME_HERE" -cn "CONTAINER_NAME_HERE"
+
+### Running and applying (i.e. this will modify the entries in Purview)
+python3 scripts/sync_column_classifications.py -en "TABLE_NAME_HERE" -cn "CONTAINER_NAME_HERE" -a
+
+### Running against different entity types
+Note by default this runs against ADLSG2 and Azure Blob entities - if you want to run against others (such as MSSQL, you will need to specify them here)
+python3 scripts/sync_column_classifications.py -en "TABLE_NAME_HERE" -cn "CONTAINER_NAME_HERE" --tf "Some Entity Type, Another Entity Type"
+
+"""
 
 CREDENTIAL = AzureCliCredential()
 REQUEST_HEADERS = {
@@ -297,9 +316,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     entity_name = args.entity_name
     container_name = args.container_name
-    type_filter_string = args.type_filter
+    type_filter_string: str = args.type_filter
     apply = args.apply
+    type_filter = [x.lstrip().rstrip() for x in type_filter_string.split(",")]
 
     sync_purview_column_classifications(
-        entity_name, container_name, ["Azure Data Lake Storage Gen2"], bool(apply)
+        entity_name, container_name, type_filter, bool(apply)
     )
