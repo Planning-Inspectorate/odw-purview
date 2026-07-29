@@ -1,12 +1,11 @@
+import argparse
+import json
+import os
+from typing import Any
+
 import requests
 from azure.identity import AzureCliCredential
 from dotenv import load_dotenv
-import json
-import os
-from typing import List, Dict, Any
-from concurrent.futures import ThreadPoolExecutor
-import argparse
-
 
 load_dotenv(verbose=True, override=True)
 
@@ -19,7 +18,7 @@ REQUEST_HEADERS = {
 PURVIEW_NAME = os.environ.get("PURVIEW_NAME")
 
 
-def get_entities_by_guids(guids: List[str]):
+def get_entities_by_guids(guids: list[str]):
     """
     Fetch a list of Purview entities by a list of entity guids
     """
@@ -40,10 +39,10 @@ def get_entities_by_guids(guids: List[str]):
 
 
 def get_related_table_entities(
-    table_name: str, container_name: str, entity_types: List[str]
+    table_name: str, container_name: str, entity_types: list[str]
 ):
     """
-    Search Purview to find tables that match the given table_name and entity_types, and filter down the result to 
+    Search Purview to find tables that match the given table_name and entity_types, and filter down the result to
     only include entities that represent data in the specified container
     """
     search_endpoint = f"https://{PURVIEW_NAME}.purview.azure.com/catalog/api/search/query?api-version=2023-02-01-preview&includeTermHierarchy=false"
@@ -108,51 +107,42 @@ def get_related_table_entities(
     return entities
 
 
-def get_entity_column_map(entities: List[Dict[str, Any]]):
+def extract_columns_of_table_entities(entities: list[dict[str, Any]]):
     """
-    Return a dictionary of the form <table_entity_guid: table_entity_column_entity_list>
+    Deeply extract the child entities of the given entity list. Return a dictionary with the form <entity_guid: child_entity_guid>
     """
-    # A map of table_guid: table_attached_schema_guid
-    table_attached_schema_guid_map = {
-        entity["guid"]: entity["relationshipAttributes"]["attachedSchema"][0]["guid"]
-        for entity in entities
-        if entity["relationshipAttributes"].get("attachedSchema", None)
-    }
-    # A map of table_attached_schema_guid: table_attached_schema
-    attached_schema_entities = {
-        x["guid"]: x
-        for x in get_entities_by_guids(list(table_attached_schema_guid_map.values()))
-    }
-    # A map of table_guid: attached schema column guids
-    attached_schema_map = {
-        table_guid: [
-            x["guid"]
-            for x in attached_schema_entities[attached_schema_guid][
-                "relationshipAttributes"
-            ].get("columns", [])
+
+    def get_child_entities(entity: dict[str, Any]):
+        return (
+            [
+                x["guid"]
+                for x in entity["relationshipAttributes"].get("attachedSchema", [])
+            ]
+            + [x["guid"] for x in entity["relationshipAttributes"].get("items", [])]
+            + [
+                x["guid"]
+                for x in entity["relationshipAttributes"].get("properties", [])
+            ]
+        )
+
+    def recursively_extract_child_entities(entity: dict[str, Any]):
+        guids_to_expand = get_child_entities(entity)
+        new_child_entities = get_entities_by_guids(guids_to_expand)
+        new_children = [
+            grandchild
+            for child in new_child_entities
+            for grandchild in recursively_extract_child_entities(child)
         ]
-        for table_guid, attached_schema_guid in table_attached_schema_guid_map.items()
-    }
-    # A list of column guids to extract from Purview
-    column_entities_to_extract = [
-        entity for group in attached_schema_map.values() for entity in group
-    ]
-    # A map of column_guid: column
-    column_entities_map = {
-        x["guid"]: x for x in get_entities_by_guids(column_entities_to_extract)
-    }
-    # A map of table_guid: column_guids
+        return new_child_entities + new_children
+
     return {
-        table_guid: [
-            column_entities_map[column_guid]
-            for column_guid in attached_schema_column_guids
-        ]
-        for table_guid, attached_schema_column_guids in attached_schema_map.items()
+        entity["guid"]: recursively_extract_child_entities(entity)
+        for entity in entities
     }
 
 
 def group_similar_classification_tags_for_table_entities(
-    table_entities: List[Dict[str, Any]],
+    table_entities: list[dict[str, Any]],
 ):
     """
     Return a dictionary of <column_entity_guid: common_classifications> with classifications that are common to all column
@@ -162,11 +152,11 @@ def group_similar_classification_tags_for_table_entities(
 
     This prints a comparison of before/after so you can trace what is happening
     """
-    table_entity_column_map = get_entity_column_map(table_entities)
+    table_entity_column_map = extract_columns_of_table_entities(table_entities)
     # Generate a map of the classification tags for columns with the same names
-    column_name_classifications = dict()
-    column_guid_name_map = dict()
-    original_column_entity_classifications = dict()
+    column_name_classifications = {}
+    column_guid_name_map = {}
+    original_column_entity_classifications = {}
     for column_entities in table_entity_column_map.values():
         for column_entity in column_entities:
             column_guid = column_entity["guid"]
@@ -181,7 +171,12 @@ def group_similar_classification_tags_for_table_entities(
             if column_name not in column_name_classifications:
                 column_name_classifications[column_name] = new_classification_names
             else:
-                column_name_classifications[column_name] += new_classification_names
+                column_name_classifications[column_name] = list(
+                    set(
+                        column_name_classifications[column_name]
+                        + new_classification_names
+                    )
+                )
     # Apply classification tags
     new_column_entity_classifications = {
         column_guid: list(set(column_name_classifications[column_name]))
@@ -193,10 +188,12 @@ def group_similar_classification_tags_for_table_entities(
         for k, v in new_column_entity_classifications.items()
         if set(original_column_entity_classifications[k]) != set(v)
     }
+    print("The below classifications were found for the columns")
+    print(json.dumps(column_name_classifications, indent=4))
     if modified_column_entity_classifications:
         relevant_column_name_map = {
             column_guid: column_guid_name_map[column_guid]
-            for column_guid in modified_column_entity_classifications.keys()
+            for column_guid in modified_column_entity_classifications
         }
         print(
             "The following column entities have modified classifications, which are below"
@@ -214,13 +211,13 @@ def group_similar_classification_tags_for_table_entities(
 
 
 def bulk_assign_classifications(
-    entity_classification_dict: Dict[str, List[str]], apply=False
+    entity_classification_dict: dict[str, list[str]], apply=False
 ):
     """
     Take in a dictionary of <entity_guid: [classification_names]> and bulk upload to Purview
     """
 
-    def generate_request_json(entity_guid, entity_classifications: List[str]):
+    def generate_request_json(entity_guid, entity_classifications: list[str]):
         return [
             {"typeName": classification_name, "entityGuid": entity_guid}
             for classification_name in entity_classifications
@@ -231,19 +228,20 @@ def bulk_assign_classifications(
         for entity_guid, classification_list in entity_classification_dict.items()
     }
     if apply:
-        for guid in request_bodies.keys():
+        for (
+            guid,
+            body,
+        ) in request_bodies.items():
             print(f"Applying classifications to entity with guid '{guid}'")
             url = f"https://{PURVIEW_NAME}.purview.azure.com/datamap/api/atlas/v2/entity/guid/{guid}/classifications"
-            resp = requests.post(
-                url, json=request_bodies[guid], headers=REQUEST_HEADERS
-            )
+            resp = requests.post(url, json=body, headers=REQUEST_HEADERS)
             print(f"    {resp}")
 
 
 def sync_purview_column_classifications(
     table_name: str,
     container_name: str,
-    entity_type_filter: List[str],
+    entity_type_filter: list[str],
     apply: bool = False,
 ):
     """
