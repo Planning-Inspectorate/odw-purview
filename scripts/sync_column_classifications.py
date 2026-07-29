@@ -121,7 +121,9 @@ def get_related_table_entities(
     resp = requests.post(search_endpoint, json=search_payload, headers=REQUEST_HEADERS)
     entity_summaries = resp.json().get("value", [])
     relevant_entity_guids = [
-        x["id"] for x in entity_summaries if container_name in x["qualifiedName"]
+        x["id"]
+        for x in entity_summaries
+        if container_name in x["qualifiedName"] and entity_name in x["qualifiedName"]
     ]
     entities = get_entities_by_guids(relevant_entity_guids)
     print(f"Found {len(relevant_entity_guids)} table entities")
@@ -147,6 +149,7 @@ def extract_columns_of_table_entities(entities: list[dict[str, Any]]):
                 x["guid"]
                 for x in entity["relationshipAttributes"].get("properties", [])
             ]
+            + [x["guid"] for x in entity["relationshipAttributes"].get("columns", [])]
         )
 
     def recursively_extract_child_entities(entity: dict[str, Any]):
