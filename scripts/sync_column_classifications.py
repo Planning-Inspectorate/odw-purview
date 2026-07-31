@@ -123,7 +123,7 @@ def get_related_table_entities(
     relevant_entity_guids = [
         x["id"]
         for x in entity_summaries
-        if container_name in x["qualifiedName"] and entity_name in x["qualifiedName"]
+        if container_name in x["qualifiedName"] and table_name in x["qualifiedName"]
     ]
     entities = get_entities_by_guids(relevant_entity_guids)
     print(f"Found {len(relevant_entity_guids)} table entities")
